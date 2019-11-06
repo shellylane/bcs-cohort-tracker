@@ -1,6 +1,8 @@
 const router = require("express").Router();
 const axios = require("axios");
 
+
+//Login route: Sign into BCS and get user data
 router.get("/login", function (req, res) {
     //user object to build and send back to front end
     const user = {
@@ -47,5 +49,56 @@ router.get("/login", function (req, res) {
             console.log(error);
         })
 })
+
+
+router.post("/assignments", function (req, res) {
+    console.log(req.body);
+    const token = req.body.authToken;
+    const enrollmentId = req.body.enrollmentId;
+    const data = {
+        enrollmentId: parseInt(enrollmentId)
+    }
+
+    axios({
+        method: "POST",
+        url: "https://bootcampspot.com/api/instructor/v1/assignments",
+        headers: { "Content-Type": "application/json", "authToken": token },
+        data: JSON.stringify(data)
+    })
+        .then(function (response) {
+            const allAssignments = response.data.calendarAssignments
+            const academicAssignments = allAssignments.filter(assignment => assignment.contextId === 1 && assignment.required === true);
+            const finalAssignments = [];
+            academicAssignments.forEach(assignment => {
+                const homework = {
+                    title: assignment.title,
+                    id: assignment.id,
+                    dueDate: assignment.effectiveDueDate.split("T")[0]
+                }
+                finalAssignments.push(homework);
+            })
+            console.log(finalAssignments);
+            // finalAssignments.forEach(assignment => {
+
+
+
+
+
+            // })
+            // axios({
+            // method: "POST",
+            // url: "https://bootcampspot.com/api/instructor/v1/assignmentDetail",
+            // headers: { "Content-Type": "application/json", "authToken": token },
+            // data: JSON.stringify(data)
+            // })
+
+
+        })
+        .catch(function (error) {
+            console.log(error);
+        })
+
+})
+
 
 module.exports = router;
